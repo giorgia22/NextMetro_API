@@ -24,7 +24,7 @@ def getNextArrivals(
     # DB query with SQLAlchemy, it needs to open a session to the DB
     with Session(engine) as session:
         result = (
-            session.query(StopTime)
+            session.query(StopTime.stop_id, StopTime.arrival_time, StopTime.trip_id, StopTime.stop_headsign)
             .join(Trip, StopTime.trip)
             .join(UniversalCalendar, Trip.universal_calendar)
             .filter(
