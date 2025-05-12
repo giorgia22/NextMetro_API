@@ -66,6 +66,8 @@ def getAllStops(metroLine: str = None):
     return result
 
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=30000) #select on which port to run it
 """
 TODO:
 - get nearest stop_id
