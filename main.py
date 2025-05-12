@@ -2,7 +2,7 @@ import uvicorn
 
 from sqlalchemy import create_engine, distinct
 from sqlalchemy.orm import Session
-from gtfsdb import StopTime, Trip, UniversalCalendar, RouteStop
+from gtfsdb import StopTime, Trip, UniversalCalendar
 import datetime
 import logging
 from fastapi import FastAPI

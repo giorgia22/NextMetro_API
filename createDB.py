@@ -1,4 +1,4 @@
-from gtfsdb import StopTime, Stop, Trip, GTFS, Database
+from gtfsdb import GTFS, Database
 from sqlalchemy import *
 
 gtfs = GTFS("https://dati.comune.milano.it/gtfs.zip")
