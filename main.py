@@ -6,6 +6,7 @@ from gtfsdb import StopTime, Trip, UniversalCalendar
 import datetime
 import logging
 from fastapi import FastAPI
+import datetime 
 
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -20,6 +21,17 @@ def getNextArrivals(
     stopId: str, date: datetime.datetime, headsign: str = "", count: int = None
 ):
     logger.debug("getNextArrivals()")
+    date = date.astimezone()
+    queryTime = ""
+
+    if date.hour < 4:
+        date -= datetime.timedelta(days=1)
+        queryTime = f'{date.hour + 24}:{date.astimezone().strftime("%M:%S")}'
+
+    else:
+        queryTime = date.strftime("%H:%M:%S")
+        
+    queryDate = date.strftime("%Y-%m-%d")
 
     # DB query with SQLAlchemy, it needs to open a session to the DB
     with Session(engine) as session:
@@ -28,9 +40,9 @@ def getNextArrivals(
             .join(Trip, StopTime.trip)
             .join(UniversalCalendar, Trip.universal_calendar)
             .filter(
-                UniversalCalendar.date == date.astimezone().strftime("%Y-%m-%d"),
+                UniversalCalendar.date == queryDate,
                 StopTime.stop_id == stopId,
-                StopTime.arrival_time > date.astimezone().strftime("%H:%M:%S"),
+                StopTime.arrival_time > queryTime,
             )
             .order_by(StopTime.arrival_time)
             .all()
@@ -41,7 +53,24 @@ def getNextArrivals(
 
         for row in result:
             if headsign in row.stop_headsign:
-                out.append(row)
+                arrivalDate = date.date()
+                hour, min, sec = map(int, row.arrival_time.split(':'))
+
+                logger.debug(f"return: {hour}:{min}:{sec}")
+                
+                if(hour >= 24):
+                    arrivalDate += datetime.timedelta(days=1)
+                    hour -= 24
+               
+                arrivalTime = datetime.time(hour, min, sec)
+                arrivalDatetime = datetime.datetime.combine(arrivalDate, arrivalTime)
+
+                out.append({
+                    "stopId": row.stop_id,
+                    "tripId": row.trip_id,
+                    "headsign": row.stop_headsign,
+                    "arrivalTime": arrivalDatetime,
+                })
                 t += 1
             if count is not None and t >= count:
                 break
